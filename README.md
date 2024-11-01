@@ -13,6 +13,106 @@ This chat application is the third in a series exploring Kubernetes capabilities
 
 The project serves as a practical example of how different components (React, Go, RabbitMQ) work together in a Kubernetes cluster, demonstrating real-world architectural patterns and best practices.
 
+## System Architecture
+
+### Component Interaction
+```mermaid
+graph TB
+    subgraph "Frontend Pods"
+        F1[React Frontend 1]
+        F2[React Frontend 2]
+    end
+
+    subgraph "Backend Pods"
+        B1[Go Backend 1]
+        B2[Go Backend 2]
+        B3[Go Backend 3]
+    end
+
+    subgraph "Message Broker"
+        RMQ[RabbitMQ]
+    end
+
+    U1[User 1] --> F1
+    U2[User 2] --> F2
+    
+    F1 --> |WebSocket| B1
+    F1 --> |WebSocket| B2
+    F2 --> |WebSocket| B2
+    F2 --> |WebSocket| B3
+    
+    B1 <--> |Pub/Sub| RMQ
+    B2 <--> |Pub/Sub| RMQ
+    B3 <--> |Pub/Sub| RMQ
+
+    style RMQ fill:#ff9999
+    style F1 fill:#9999ff
+    style F2 fill:#9999ff
+    style B1 fill:#99ff99
+    style B2 fill:#99ff99
+    style B3 fill:#99ff99
+```
+
+### Message Flow Sequence
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant R as RabbitMQ
+    participant OB as Other Backends
+    participant OU as Other Users
+
+    U->>F: Send Message
+    F->>B: WebSocket Message
+    B->>R: Publish Message
+    R->>B: Broadcast Message
+    R->>OB: Broadcast Message
+    B->>F: Forward to Connected Users
+    OB->>OU: Forward to Connected Users
+    
+    Note over R: Fanout Exchange
+    Note over B,OB: Multiple Backend Pods
+    Note over F,OU: All Connected Clients
+```
+
+### Kubernetes Architecture
+```mermaid
+graph TB
+    subgraph "Kubernetes Cluster"
+        subgraph "Frontend Deployment"
+            FP[Frontend Pods]
+        end
+        
+        subgraph "Backend Deployment"
+            BP[Backend Pods]
+        end
+        
+        subgraph "RabbitMQ StatefulSet"
+            RMQ[RabbitMQ Pod]
+        end
+        
+        FS[Frontend Service]
+        BS[Backend Service]
+        RS[RabbitMQ Service]
+        
+        FP --> FS
+        BP --> BS
+        RMQ --> RS
+        
+        BP --> RS
+    end
+    
+    U[Users] --> FS
+    FS --> FP
+    FP --> BS
+    BS --> BP
+    
+    style FP fill:#9999ff
+    style BP fill:#99ff99
+    style RMQ fill:#ff9999
+```
+
 ## Learning Objectives
 
 - Understanding distributed systems in Kubernetes
@@ -21,13 +121,6 @@ The project serves as a practical example of how different components (React, Go
 - Handling cross-pod message broadcasting
 - Service discovery and pod-to-pod communication
 - Load balancing and scaling considerations
-
-## Architecture
-
-- **Frontend**: React application with WebSocket client
-- **Backend**: Go server handling WebSocket connections and message broadcasting
-- **Message Broker**: RabbitMQ for distributed message handling
-- **Infrastructure**: Kubernetes for container orchestration
 
 ## Features
 
