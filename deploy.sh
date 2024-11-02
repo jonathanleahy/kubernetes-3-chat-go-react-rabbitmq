@@ -129,7 +129,7 @@ build_backend() {
 verify_service() {
     local service_name=$1
     local port=$2
-    local max_attempts=10  # Maximum number of retry attempts
+    local max_attempts=5  # Maximum number of retry attempts
     local wait_seconds=5   # Seconds to wait between attempts
     local attempt=1
 
