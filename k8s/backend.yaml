@@ -33,10 +33,11 @@ kind: Service
 metadata:
   name: chat-backend-service
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
     - port: 3000
       targetPort: 3000
       nodePort: 30090
+      protocol: TCP
   selector:
     app: chat-backend
