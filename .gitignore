@@ -1,2 +1,5 @@
 /.idea
 /node_modules
+
+/chat-frontend/.idea
+/chat-frontend/node_modules
